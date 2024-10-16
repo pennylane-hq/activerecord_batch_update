@@ -17,6 +17,7 @@ jobs:
         uses: ruby/setup-ruby@v1.196.0
         with:
           ruby-version: 3.3.4
+          bundler-cache: true
 
       - name: Install dependencies
         run: bundle install

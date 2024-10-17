@@ -20,7 +20,7 @@ module BatchUpdate
       # + ::Auditable::ActiveRecord::AUDIT_LOG_UPDATED_COLUMNS).uniq
 
       entries = entries.select { columns.intersect?(_1.changed) }
-      entries.each { _1.updated_at = Time.current } if has_attribute?('updated_at')
+      entries.each { _1.__send__(:record_update_timestamps) }
 
       entries.each(&:validate!) if validate
       # entries.each(&:mark_audit_log_update)

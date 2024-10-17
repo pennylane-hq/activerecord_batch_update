@@ -19,7 +19,7 @@ module BatchUpdate
       columns = (Array.wrap(columns).map(&:to_s) + %w[updated_at]).uniq
       # + ::Auditable::ActiveRecord::AUDIT_LOG_UPDATED_COLUMNS).uniq
 
-      entries = entries.select(&:changed?)
+      entries = entries.select { columns.intersect?(_1.changed) }
       entries.each { _1.updated_at = Time.current } if has_attribute?('updated_at')
 
       entries.each(&:validate!) if validate
@@ -42,6 +42,8 @@ module BatchUpdate
       updated_count
     end
 
+    private
+
     def batch_update_statements(entries, update_on: :id, batch_size: 100)
       update_on = Array.wrap(update_on).map(&:to_s)
 
@@ -62,8 +64,6 @@ module BatchUpdate
         end
       end
     end
-
-    private
 
     def cte_table
       @cte_table ||= Arel::Table.new('batch_updates')

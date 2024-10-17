@@ -4,7 +4,7 @@ require 'batch_update'
 
 describe BatchUpdate do
   describe '#batch_update_statements' do
-    subject(:sql_queries) { Cat.batch_update_statements(cats, **kwargs) }
+    subject(:sql_queries) { Cat.__send__(:batch_update_statements, cats, **kwargs) }
 
     let(:cats) { [] }
     let(:kwargs) { {} }
@@ -100,40 +100,45 @@ describe BatchUpdate do
       end
     end
 
-    it 'batches queries accordingly' do
-      query1 = <<~SQL.squish
-        WITH "batch_updates" (id, name) AS (
-          VALUES (CAST(1 AS INTEGER), CAST('foo' AS varchar))
-        )
-        UPDATE "cats"
-        SET
-          "name" = "batch_updates"."name"
-        FROM "batch_updates"
-        WHERE
-          "cats"."id" = "batch_updates"."id"
-      SQL
+    context 'with a custom batch_size' do
+      let(:cats) do
+        [
+          { id: 1, name: 'foo' },
+          { id: 2, name: 'bar' }
+        ]
+      end
 
-      query2 = <<~SQL.squish
-        WITH "batch_updates" (id, name) AS (
-          VALUES (CAST(2 AS INTEGER), CAST('bar' AS varchar))
-        )
-        UPDATE "cats"
-        SET
-          "name" = "batch_updates"."name"
-        FROM "batch_updates"
-        WHERE
-          "cats"."id" = "batch_updates"."id"
-      SQL
+      let(:kwargs) do
+        { batch_size: 1 }
+      end
 
-      expect(
-        Cat.batch_update_statements(
-          [
-            { id: 1, name: 'foo' },
-            { id: 2, name: 'bar' }
-          ],
-          batch_size: 1
-        )
-      ).to contain_exactly(query1, query2)
+      it 'batches queries accordingly' do
+        query1 = <<~SQL.squish
+          WITH "batch_updates" (id, name) AS (
+            VALUES (CAST(1 AS INTEGER), CAST('foo' AS varchar))
+          )
+          UPDATE "cats"
+          SET
+            "name" = "batch_updates"."name"
+          FROM "batch_updates"
+          WHERE
+            "cats"."id" = "batch_updates"."id"
+        SQL
+
+        query2 = <<~SQL.squish
+          WITH "batch_updates" (id, name) AS (
+            VALUES (CAST(2 AS INTEGER), CAST('bar' AS varchar))
+          )
+          UPDATE "cats"
+          SET
+            "name" = "batch_updates"."name"
+          FROM "batch_updates"
+          WHERE
+            "cats"."id" = "batch_updates"."id"
+        SQL
+
+        expect(sql_queries).to contain_exactly(query1, query2)
+      end
     end
   end
 
@@ -150,7 +155,7 @@ describe BatchUpdate do
 
       it 'does not insert a new record' do
         expect do
-          Cat.batch_update([non_existing_record], columns: :all, validate: false)
+          Cat.batch_update([non_existing_record], columns: :all)
         end.to execute_queries(/UPDATE/)
           .and not_change(Cat, :count)
           .and(not_change { Cat.exists?(id: non_existing_record.id) })
@@ -166,7 +171,7 @@ describe BatchUpdate do
           cat1.name = 'can I haz cheeseburger pls'
           cat2.name = 'O\'Sullivans cuba libre'
           cat2.birthday = '2024-01-01'
-          Cat.batch_update([cat1, cat2], columns: :all, validate: false)
+          Cat.batch_update([cat1, cat2], columns: :all)
         end.to execute_queries(
           /WITH "batch_updates" .* AS \( VALUES.* UPDATE "cats" SET "birthday" = "batch_updates"."birthday", "name" = "batch_updates"."name", "updated_at" = "batch_updates"."updated_at" FROM "batch_updates"/,
           /WITH "batch_updates" .* AS \( VALUES.* UPDATE "cats" SET "name" = "batch_updates"."name", "updated_at" = "batch_updates"."updated_at" FROM "batch_updates"/
@@ -182,7 +187,7 @@ describe BatchUpdate do
           expect do
             cat1.bitcoin_address = 'abc'
 
-            Cat.batch_update([cat1], columns: %i[bitcoin_address], validate: false)
+            Cat.batch_update([cat1], columns: %i[bitcoin_address])
           end.to execute_queries(
             /WITH "batch_updates" \(bitcoin_address, id, updated_at\) AS \( VALUES \(CAST\(.* AS varchar\), CAST\(\d* AS INTEGER\), CAST\(.* AS datetime\(6\)\)\) \) UPDATE "cats" SET "bitcoin_address" = "batch_updates"."bitcoin_address", "updated_at" = "batch_updates"."updated_at" FROM "batch_updates" WHERE "cats"."id" = "batch_updates"."id"/
           ).and change { cat1.reload.bitcoin_address }.to('abc')
@@ -195,7 +200,7 @@ describe BatchUpdate do
         it 'does not remove it' do
           expect do
             cat1.name = 'can   I    haz   cheeseburger    pls'
-            Cat.batch_update([cat1], columns: :all, validate: false)
+            Cat.batch_update([cat1], columns: :all)
           end.to change { cat1.reload.name }.to('can   I    haz   cheeseburger    pls')
         end
       end
@@ -206,27 +211,42 @@ describe BatchUpdate do
         it 'does not break the query' do
           expect do
             cat1.name = 'La Rose Blanche \\'
-            Cat.batch_update([cat1], columns: :all, validate: false)
+            Cat.batch_update([cat1], columns: :all)
           end.to change { cat1.reload.name }.to('La Rose Blanche \\')
         end
       end
     end
 
-    describe 'when some fields changed, but are not included in only kwarg' do
-      let!(:cat1) { Cat.create!(name: 'Felix', birthday: Date.new(2010, 1, 1)) }
-      let!(:cat2) { Cat.create!(name: 'Garfield', birthday: Date.new(2011, 2, 2)) }
+    context 'when the columns kwargs is specified' do
+      describe 'when not all changes are included the columns kwarg' do
+        let!(:cat1) { Cat.create!(name: 'Felix', birthday: Date.new(2010, 1, 1)) }
+        let!(:cat2) { Cat.create!(name: 'Garfield', birthday: Date.new(2011, 2, 2)) }
 
-      it 'does not change them' do
-        expect do
-          cat1.name = 'can I haz cheeseburger pls'
-          cat2.name = 'O\'Sullivans cuba libre'
-          cat2.birthday = Date.new(2024, 1, 1)
-          Cat.batch_update([cat1, cat2], columns: %w[name], validate: false)
-        end.to execute_queries(
-          /WITH "batch_updates" .* AS \( VALUES.* UPDATE "cats" SET "name" = "batch_updates"."name", "updated_at" = "batch_updates"."updated_at" FROM "batch_updates"/
-        ).and change { cat1.reload.name }.to('can I haz cheeseburger pls')
-                                         .and change { cat2.reload.name }.to('O\'Sullivans cuba libre')
-                                                                         .and(not_change { cat2.reload.birthday })
+        it 'does not change them' do
+          expect do
+            cat1.name = 'can I haz cheeseburger pls'
+            cat2.name = 'O\'Sullivans cuba libre'
+            cat2.birthday = Date.new(2024, 1, 1)
+            Cat.batch_update([cat1, cat2], columns: %w[name])
+          end.to execute_queries(
+            /WITH "batch_updates" .* AS \( VALUES.* UPDATE "cats" SET "name" = "batch_updates"."name", "updated_at" = "batch_updates"."updated_at" FROM "batch_updates"/
+          ).and(change { cat1.reload.name }.to('can I haz cheeseburger pls'))
+            .and(change { cat2.reload.name }.to('O\'Sullivans cuba libre'))
+            .and(not_change { cat2.reload.birthday })
+        end
+      end
+
+      describe 'when no changes overlap with the columns kwarg' do
+        let!(:cat) { Cat.create!(name: 'Felix', birthday: Date.new(2010, 1, 1)) }
+
+        it 'does not run any query and make no changes' do
+          expect do
+            cat.name = 'can I haz cheeseburger pls'
+            Cat.batch_update([cat], columns: %w[birthday])
+          end.to execute_no_queries
+             .and(not_change { cat.reload.name })
+            .and(not_change { cat.reload.birthday })
+        end
       end
     end
 
@@ -259,7 +279,7 @@ describe BatchUpdate do
         before_import_cat = cat1
         before_import_cat.name = 'Yoda'
 
-        Cat.batch_update([before_import_cat], columns: %i[name], validate: false)
+        Cat.batch_update([before_import_cat], columns: %i[name])
 
         after_import_cat = Cat.find(before_import_cat.id)
         expect(before_import_cat.name).to eq('Yoda')

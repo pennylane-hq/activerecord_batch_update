@@ -17,13 +17,10 @@ module BatchUpdate
     def batch_update(entries, columns:, batch_size: 100, validate: true)
       columns = column_names if columns == :all
       columns = (Array.wrap(columns).map(&:to_s) + %w[updated_at]).uniq
-      # + ::Auditable::ActiveRecord::AUDIT_LOG_UPDATED_COLUMNS).uniq
 
       entries = entries.select { columns.intersect?(_1.changed) }
       entries.each { _1.updated_at = Time.current } if has_attribute?('updated_at')
-
       entries.each(&:validate!) if validate
-      # entries.each(&:mark_audit_log_update)
 
       primary_keys = Array.wrap(primary_key).map(&:to_s)
 

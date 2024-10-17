@@ -19,6 +19,19 @@ cat3.birthday = '1900-01-01'
 Cat.batch_update([cat1, cat2, cat3]) # issues a single SQL query
 ```
 
+The SQL query looks like the following:
+```SQL
+WITH "batch_updates" (birthday, id) AS (
+  VALUES (CAST('2024-01-01' AS date), CAST(1 AS INTEGER)), ('2024-06-06', 2), ('1900-01-01', 3),
+)
+UPDATE "cats"
+SET
+  "birthday" = "batch_updates"."birthday"
+FROM "batch_updates"
+WHERE
+  "cats"."id" = "batch_updates"."id"
+```
+
 ## Advanced usage
 Specify which columns to update (all columns are included by default):
 ```ruby

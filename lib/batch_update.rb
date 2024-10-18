@@ -39,8 +39,6 @@ module BatchUpdate
       updated_count
     end
 
-    private
-
     def batch_update_statements(entries, update_on: :id, batch_size: 100)
       update_on = Array.wrap(update_on).map(&:to_s)
 
@@ -61,6 +59,8 @@ module BatchUpdate
         end
       end
     end
+
+    private
 
     def cte_table
       @cte_table ||= Arel::Table.new('batch_updates')

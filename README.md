@@ -53,5 +53,12 @@ Specify a different batch size (100 by default):
 Cat.batch_update(cats, columns: :all, batch_size: 1000)
 ```
 
+Generate the relevant SQL statements:
+```ruby
+Cat.batch_update_statements([{id: 1, name: 'Lilly'}, {id: 2, name: 'John'}]).each do |query|
+  Cat.connection.execute(query)
+end
+```
+
 ## License
 MIT

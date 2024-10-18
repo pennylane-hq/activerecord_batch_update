@@ -4,7 +4,7 @@ require 'batch_update'
 
 describe BatchUpdate do
   describe '#batch_update_statements' do
-    subject(:sql_queries) { Cat.__send__(:batch_update_statements, cats, **kwargs) }
+    subject(:sql_queries) { Cat.batch_update_statements(cats, **kwargs) }
 
     let(:cats) { [] }
     let(:kwargs) { {} }

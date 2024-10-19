@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name        = 'activerecord_batch_update'
-  s.version     = '0.0.2'
+  s.version     = '0.0.3'
   s.summary     = 'Update multiple records with different values in a small number of queries'
   s.description = ''
   s.authors     = ['Quentin de Metz']

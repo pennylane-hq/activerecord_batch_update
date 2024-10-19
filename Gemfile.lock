@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    activerecord_batch_update (0.0.2)
+    activerecord_batch_update (0.0.3)
       activerecord (~> 7.0)
       activesupport (~> 7.0)
 

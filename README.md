@@ -1,11 +1,11 @@
-# Batch Update
+# ActiveRecord Batch Update
 
 Update multiple records with different values in an optimized number of queries.
 
 This differs from [activerecord-import](https://github.com/zdennis/activerecord-import) because the latter issues a `INSERT ... ON DUPLICATE KEY UPDATE` statement which re-inserts the record if it happens to have been deleted in a other thread.
 
 ## Usage
-Include in your Gemfile: `gem 'batch_update'`
+Include in your Gemfile: `gem 'activerecord_batch_update'`
 
 ```ruby
 cat1 = Cat.create!(name: 'Felix', birthday: '1990-03-13')

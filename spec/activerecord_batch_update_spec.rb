@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'batch_update'
+require 'activerecord_batch_update'
 
-describe BatchUpdate do
+describe ActiveRecordBatchUpdate do # rubocop:disable RSpec/SpecFilePathFormat
   describe '#batch_update_statements' do
     subject(:sql_queries) { Cat.batch_update_statements(cats, **kwargs) }
 

@@ -2,7 +2,7 @@
 
 require 'active_support'
 
-module BatchUpdate
+module ActiveRecordBatchUpdate
   extend ::ActiveSupport::Concern
 
   # Given an array of records with changes,
@@ -114,5 +114,5 @@ module BatchUpdate
 end
 
 ActiveSupport.on_load(:active_record) do
-  include(BatchUpdate)
+  include(ActiveRecordBatchUpdate)
 end

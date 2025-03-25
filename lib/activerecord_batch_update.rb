@@ -45,15 +45,15 @@ module ActiveRecordBatchUpdate
       entries.map(&:stringify_keys).group_by { _1.keys.sort! }.sort.flat_map do |(keys, items)|
         next [] if keys.empty?
 
-        where_clause = where_statement(update_on)
-        update_clause = update_statement(keys - update_on)
+        where_clause = batch_update_where_statement(update_on)
+        update_clause = batch_update_statement(keys - update_on)
 
         items.each_slice(batch_size).map do |slice|
           [
-            "WITH \"#{cte_table.name}\" (#{keys.join(', ')})",
-            "AS ( #{values_statement(slice, keys)} )",
+            "WITH \"#{batch_update_table.name}\" (#{keys.join(', ')})",
+            "AS ( #{batch_update_values_statement(slice, keys)} )",
             update_clause,
-            "FROM \"#{cte_table.name}\"",
+            "FROM \"#{batch_update_table.name}\"",
             "WHERE #{where_clause}"
           ].join(' ')
         end
@@ -62,22 +62,22 @@ module ActiveRecordBatchUpdate
 
     private
 
-    def cte_table
-      @cte_table ||= Arel::Table.new('batch_updates')
+    def batch_update_table
+      @batch_update_table ||= Arel::Table.new('batch_updates')
     end
 
-    def values_statement(items, cols)
+    def batch_update_values_statement(items, cols)
       first, *rest = items
 
       rows = [
-        values_list_casted_item(first, cols),
-        *rest.map { values_list_other_item(_1, cols) }
+        batch_update_casted_item(first, cols),
+        *rest.map { batch_update_quoted_item(_1, cols) }
       ]
 
       "VALUES #{rows.map { "(#{_1.map(&:to_sql).join(', ')})" }.join(', ')}"
     end
 
-    def values_list_casted_item(item, cols)
+    def batch_update_casted_item(item, cols)
       cols.map do |col|
         Arel::Nodes::NamedFunction.new(
           'CAST',
@@ -88,27 +88,27 @@ module ActiveRecordBatchUpdate
       end
     end
 
-    def values_list_other_item(item, cols)
+    def batch_update_quoted_item(item, cols)
       cols.map do |col|
         Arel::Nodes.build_quoted(item[col], arel_table[col])
       end
     end
 
-    def update_statement(cols)
+    def batch_update_statement(cols)
       Arel::UpdateManager.new(arel_table).tap do |um|
         um.set(
           cols.map do |col|
             [
               arel_table[col],
-              cte_table[col]
+              batch_update_table[col]
             ]
           end
         )
       end.to_sql
     end
 
-    def where_statement(primary_keys)
-      primary_keys.map { arel_table[_1].eq(cte_table[_1]) }.reduce(:and).to_sql
+    def batch_update_where_statement(primary_keys)
+      primary_keys.map { arel_table[_1].eq(batch_update_table[_1]) }.reduce(:and).to_sql
     end
   end
 end

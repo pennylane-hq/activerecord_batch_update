@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name        = 'activerecord_batch_update'
-  s.version     = '0.0.3'
+  s.version     = '1.0.0'
   s.summary     = 'Update multiple records with different values in a small number of queries'
   s.description = ''
   s.authors     = ['Quentin de Metz']
@@ -14,8 +14,8 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = '>= 3.3.4'
 
-  s.add_dependency 'activerecord', '~> 7.0'
-  s.add_dependency 'activesupport', '~> 7.0'
+  s.add_dependency 'activerecord', '>= 7.0', '< 8.1'
+  s.add_dependency 'activesupport', '>= 7.0', '< 8.1'
 
   s.metadata['rubygems_mfa_required'] = 'true'
 end

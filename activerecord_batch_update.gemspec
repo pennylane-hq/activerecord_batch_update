@@ -14,8 +14,8 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = '>= 3.3.4'
 
-  s.add_dependency 'activerecord', '~> 7.0'
-  s.add_dependency 'activesupport', '~> 7.0'
+  s.add_dependency 'activerecord', '>= 7.0', '< 8.1'
+  s.add_dependency 'activesupport', '>= 7.0', '< 8.1'
 
   s.metadata['rubygems_mfa_required'] = 'true'
 end

@@ -35,6 +35,7 @@ module ActiveRecordBatchUpdate
       end
 
       connection.clear_query_cache if connection.query_cache_enabled
+      entries.each(&:changes_applied)
 
       updated_count
     end

@@ -180,6 +180,13 @@ describe ActiveRecordBatchUpdate do # rubocop:disable RSpec/SpecFilePathFormat
                                                                          .and(change { cat2.reload.birthday })
       end
 
+      it 'clears the changes after the update' do
+        cat1.name = 'Nala'
+        Cat.batch_update([cat1], columns: :all)
+
+        expect(cat1.changes_to_save).to be_empty
+      end
+
       context 'when some fields are encrypted' do
         let!(:cat1) { Cat.create!(name: 'Felix', birthday: Date.new(2010, 1, 1)) }
 

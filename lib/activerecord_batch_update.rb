@@ -14,7 +14,7 @@ module ActiveRecordBatchUpdate
   # which will re-insert the objects if they were deleted in another thread
 
   module ClassMethods
-    def batch_update(entries, columns:, batch_size: 100, validate: true)
+    def batch_update(entries, columns:, batch_size: 100, validate: true, clear_attribute_changes: true)
       columns = column_names if columns == :all
       columns = (Array.wrap(columns).map(&:to_s) + %w[updated_at]).uniq
 
@@ -35,7 +35,7 @@ module ActiveRecordBatchUpdate
       end
 
       connection.clear_query_cache if connection.query_cache_enabled
-      entries.each { _1.clear_attribute_changes(columns) }
+      entries.each { _1.clear_attribute_changes(columns) } if clear_attribute_changes
 
       updated_count
     end

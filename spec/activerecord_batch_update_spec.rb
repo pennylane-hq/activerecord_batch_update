@@ -187,6 +187,15 @@ describe ActiveRecordBatchUpdate do # rubocop:disable RSpec/SpecFilePathFormat
 
           expect(cat1.changes_to_save).to be_empty
         end
+
+        context 'with the clear_attribute_changes option as false' do
+          it 'does not clear any changes after the update' do
+            cat1.name = 'Nala'
+            Cat.batch_update([cat1], columns: :all, clear_attribute_changes: false)
+
+            expect(cat1.changes_to_save.keys).to contain_exactly('name', 'updated_at')
+          end
+        end
       end
 
       context 'when saving only some of the dirty attributes' do

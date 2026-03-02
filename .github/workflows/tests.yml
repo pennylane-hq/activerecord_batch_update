@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  matrix-test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -36,3 +36,19 @@ jobs:
 
       - name: Run tests
         run: bin/rspec
+
+  test:
+    name: All required tests passed
+    needs: matrix-test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check status
+        run: |
+          if [ "${{ needs.test.result }}" == "success" ] || [ "${{ needs.test.result }}" == "skipped" ]; then
+            echo "All required tests passed!"
+            exit 0
+          else
+            echo "Required tests failed."
+            exit 1
+          fi

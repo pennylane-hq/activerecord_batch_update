@@ -2,13 +2,7 @@
 
 source 'https://rubygems.org'
 
-gemspec
+eval_gemfile '../Gemfile'
 
 gem 'activerecord', '~> 8.0.0'
 gem 'activesupport', '~> 8.0.0'
-gem 'byebug'
-gem 'rake-release'
-gem 'rspec'
-gem 'rubocop'
-gem 'rubocop-rspec'
-gem 'sqlite3', '~> 2.1'

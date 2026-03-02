@@ -116,9 +116,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  activerecord (~> 8.0.0)
   activerecord_batch_update!
-  activesupport (~> 8.0.0)
   byebug
   rake-release
   rspec

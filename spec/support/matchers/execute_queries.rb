@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+require 'rspec/matchers'
+
 module RSpec
   module Matchers
-    class MatchExecutedQueries < RSpec::Matchers::BuiltIn::Match
+    class MatchExecutedQueries < ::RSpec::Matchers::BuiltIn::Match
       def initialize(expected)
         expected = expected.map do |query|
           if query.is_a?(String)
-            RSpec::Matchers::BuiltIn::Include.new(query)
+            ::RSpec::Matchers::BuiltIn::Include.new(query)
           else
             query
           end

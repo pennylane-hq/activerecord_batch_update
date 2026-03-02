@@ -44,7 +44,8 @@ jobs:
     steps:
       - name: Check status
         run: |
-          if [ "${{ needs.test.result }}" == "success" ] || [ "${{ needs.test.result }}" == "skipped" ]; then
+          RESULT="${{ needs.matrix-test.result }}"
+          if [ "$RESULT" == "success" ] || [ "$RESULT" == "skipped" ]; then
             echo "All required tests passed!"
             exit 0
           else

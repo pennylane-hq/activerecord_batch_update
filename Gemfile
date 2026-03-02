@@ -4,8 +4,11 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'activerecord', '~> 8.0.0'
-gem 'activesupport', '~> 8.0.0'
+if ENV['BUNDLE_GEMFILE'].nil? || ENV['BUNDLE_GEMFILE'].end_with?('Gemfile')
+  gem 'activerecord', '~> 8.0.0'
+  gem 'activesupport', '~> 8.0.0'
+end
+
 gem 'byebug'
 gem 'rake-release'
 gem 'rspec'

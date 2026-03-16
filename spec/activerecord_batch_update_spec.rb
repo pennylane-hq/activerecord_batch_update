@@ -322,8 +322,16 @@ describe ActiveRecordBatchUpdate do # rubocop:disable RSpec/SpecFilePathFormat
     end
 
     context 'when the entries are not the same class' do
+      let(:dog) do
+        Class.new do
+          def self.name
+            'Dog'
+          end
+        end.new
+      end
+
       it 'raises an error' do
-        expect { Cat.batch_update([Dog.new, Dog.new], columns: :all) }.to raise_error(ArgumentError, 'Types not matching: Dog')
+        expect { Cat.batch_update([dog, dog], columns: :all) }.to raise_error(ArgumentError, 'Types not matching: Dog')
       end
     end
   end

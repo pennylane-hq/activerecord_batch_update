@@ -26,9 +26,5 @@ RSpec.configure do |_config|
       t.column :updated_at, :timestamp
       t.column :created_at, :timestamp
     end
-
-    create_table :dogs, force: true do |t|
-      t.column :name, :string
-    end
   end
 end

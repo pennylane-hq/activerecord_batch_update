@@ -320,5 +320,19 @@ describe ActiveRecordBatchUpdate do # rubocop:disable RSpec/SpecFilePathFormat
         expect(after_import_cat.name).to eq('Yoda')
       end
     end
+
+    context 'when the entries are not the same class' do
+      let(:dog) do
+        Class.new do
+          def self.name
+            'Dog'
+          end
+        end.new
+      end
+
+      it 'raises an error' do
+        expect { Cat.batch_update([dog, dog], columns: :all) }.to raise_error(ArgumentError, 'All entries must be Cat instances, got: Dog')
+      end
+    end
   end
 end

@@ -15,6 +15,8 @@ module ActiveRecordBatchUpdate
 
   module ClassMethods
     def batch_update(entries, columns:, batch_size: 100, validate: true, clear_attribute_changes: true)
+      ensure_entries_are_same_class!(entries)
+
       columns = column_names if columns == :all
       columns = (Array.wrap(columns).map(&:to_s) + %w[updated_at]).uniq
 
@@ -62,6 +64,14 @@ module ActiveRecordBatchUpdate
     end
 
     private
+
+    def ensure_entries_are_same_class!(entries)
+      invalid_entries = entries.grep_v(self)
+      return if invalid_entries.empty?
+
+      invalid_classes = invalid_entries.map { _1.class.name }.uniq
+      raise ArgumentError, "Types not matching: #{invalid_classes.join(', ')}"
+    end
 
     def batch_update_table
       @batch_update_table ||= Arel::Table.new('batch_updates')

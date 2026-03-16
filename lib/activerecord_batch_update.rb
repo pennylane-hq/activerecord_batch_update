@@ -70,7 +70,7 @@ module ActiveRecordBatchUpdate
       return if invalid_entries.empty?
 
       invalid_classes = invalid_entries.map { _1.class.name }.uniq
-      raise ArgumentError, "Types not matching: #{invalid_classes.join(', ')}"
+      raise ArgumentError, "All entries must be #{name} instances, got: #{invalid_classes.join(', ')}"
     end
 
     def batch_update_table

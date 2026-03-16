@@ -331,7 +331,7 @@ describe ActiveRecordBatchUpdate do # rubocop:disable RSpec/SpecFilePathFormat
       end
 
       it 'raises an error' do
-        expect { Cat.batch_update([dog, dog], columns: :all) }.to raise_error(ArgumentError, 'Types not matching: Dog')
+        expect { Cat.batch_update([dog, dog], columns: :all) }.to raise_error(ArgumentError, 'All entries must be Cat instances, got: Dog')
       end
     end
   end

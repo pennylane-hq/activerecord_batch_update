@@ -15,7 +15,7 @@ module ActiveRecordBatchUpdate
 
   module ClassMethods
     def batch_update(entries, columns:, batch_size: 100, validate: true, clear_attribute_changes: true)
-      ensure_entries_are_same_class!(entries)
+      batch_update_ensure_entries_are_same_class!(entries)
 
       columns = column_names if columns == :all
       columns = (Array.wrap(columns).map(&:to_s) + %w[updated_at]).uniq
@@ -65,7 +65,7 @@ module ActiveRecordBatchUpdate
 
     private
 
-    def ensure_entries_are_same_class!(entries)
+    def batch_update_ensure_entries_are_same_class!(entries)
       invalid_entries = entries.grep_v(self)
       return if invalid_entries.empty?
 

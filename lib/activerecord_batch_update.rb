@@ -65,7 +65,7 @@ module ActiveRecordBatchUpdate
 
     private
 
-    def batch_ensure_entries_are_same_class!(entries)
+    def batch_update_ensure_entries_are_same_class!(entries)
       invalid_entries = entries.grep_v(self)
       return if invalid_entries.empty?
 

@@ -14,7 +14,14 @@ module ActiveRecordBatchUpdate
   # which will re-insert the objects if they were deleted in another thread
 
   module ClassMethods
-    def batch_update(entries, columns:, batch_size: 100, validate: true, clear_attribute_changes: true)
+    def batch_update(
+      entries,
+      columns:,
+      update_on: primary_key,
+      batch_size: 100,
+      validate: true,
+      clear_attribute_changes: true
+    )
       batch_update_ensure_entries_are_same_class!(entries)
 
       columns = column_names if columns == :all
@@ -24,13 +31,13 @@ module ActiveRecordBatchUpdate
       entries.each { _1.updated_at = Time.current } if has_attribute?('updated_at')
       entries.each(&:validate!) if validate
 
-      primary_keys = Array.wrap(primary_key).map(&:to_s)
+      update_on = Array.wrap(update_on).map(&:to_s)
 
       updated_count = batch_update_statements(
         entries.map do |entry|
-          (primary_keys + (entry.changed & columns)).to_h { [_1, entry.read_attribute(_1)] }
+          (update_on + (entry.changed & columns)).to_h { [_1, entry.read_attribute(_1)] }
         end,
-        update_on: primary_keys,
+        update_on: update_on,
         batch_size: batch_size
       ).sum do |sql|
         connection.exec_update(sql)
@@ -65,7 +72,7 @@ module ActiveRecordBatchUpdate
 
     private
 
-    def batch_ensure_entries_are_same_class!(entries)
+    def batch_update_ensure_entries_are_same_class!(entries)
       invalid_entries = entries.grep_v(self)
       return if invalid_entries.empty?
 

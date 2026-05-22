@@ -40,7 +40,7 @@ module ActiveRecordBatchUpdate
         update_on: update_on,
         batch_size: batch_size
       ).sum do |sql|
-        connection.exec_update(sql)
+        connection.update(sql)
       end
 
       connection.clear_query_cache if connection.query_cache_enabled

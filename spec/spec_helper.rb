@@ -22,6 +22,7 @@ RSpec.configure do |_config|
     create_table :cats, force: true do |t|
       t.column :name, :string
       t.column :birthday, :date
+      t.column :owner_name, :string
       t.column :bitcoin_address, :string
       t.column :updated_at, :timestamp
       t.column :created_at, :timestamp

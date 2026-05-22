@@ -321,6 +321,20 @@ describe ActiveRecordBatchUpdate do # rubocop:disable RSpec/SpecFilePathFormat
       end
     end
 
+    context 'with a custom update_on' do
+      let!(:cat1) { Cat.create!(name: 'Figaro', owner_name: 'Geppetto') }
+      let!(:cat2) { Cat.create!(name: 'Garfield', owner_name: 'Jon Arbuckle') }
+
+      it 'matches records using the specified column instead of the primary key' do
+        expect do
+          cat1.name = 'Nala'
+          cat2.name = 'Simba'
+          Cat.batch_update([cat1, cat2], columns: :name, update_on: :owner_name)
+        end.to change { cat1.reload.name }.to('Nala')
+                                          .and(change { cat2.reload.name }.to('Simba'))
+      end
+    end
+
     context 'when the entries are not the same class' do
       let(:dog) do
         Class.new do
